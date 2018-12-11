@@ -39,13 +39,13 @@ void display( const char * const prompt, int * const x, size_t size )
   fflush( stdout );
 } 
 
-inline int cmp( int x, int y )
+static inline int cmp( int x, int y )
 {
   gcompare++;
   return x - y;
 }
 
-inline void swap( int * const restrict x, int * const restrict y )
+static inline void swap( int * const restrict x, int * const restrict y )
 {
   gswap++;
 
