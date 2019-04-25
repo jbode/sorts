@@ -21,7 +21,7 @@ static size_t grecdepth = 0;
 /**
  * Check that the array is sorted
  */
-int validate( const int * const x, size_t size )
+int validate( const long long * const x, size_t size )
 {
   for ( size_t i = 0; i < size-1; i++ )
     if ( x[i] > x[i+1] )
@@ -32,12 +32,12 @@ int validate( const int * const x, size_t size )
 /**
  * Display the contents of the array, with nicely formatted output.
  */
-void display( const char * const prompt, int * const x, size_t size )
+void display( const char * const prompt, long long * const x, size_t size )
 {
   int tot = 0;
   int dig = (int)(ceil(log10((double) size)));
   char fmt[20];
-  sprintf( fmt, "%%%dd ", dig );
+  sprintf( fmt, "%%%dllu ", dig );
   printf( "%s:\n", prompt );
   for ( size_t i = 0; i < size; i++ )
   {
@@ -56,7 +56,7 @@ void display( const char * const prompt, int * const x, size_t size )
  * Comparison function - counts the number of comparisons, can also
  * be overidden to change the sense of the test
  */
-static inline int cmp( int x, int y )
+static inline int cmp( long long x, long long y )
 {
   gcompare++;
   return x - y;
@@ -65,11 +65,11 @@ static inline int cmp( int x, int y )
 /**
  * Swap function - counts the number of swaps
  */
-static inline void swap( int * const restrict x, int * const restrict y )
+static inline void swap( long long * const restrict x, long long * const restrict y )
 {
   gswap++;
 
-  int t = *x;
+  long long t = *x;
   *x = *y;
   *y = t;
 }
@@ -77,11 +77,11 @@ static inline void swap( int * const restrict x, int * const restrict y )
 /**
  * Insertion sort.
  */
-void myins( int * const x, size_t lo, size_t hi, size_t (*pfunc)( int * const, size_t, size_t ) )
+void myins( long long * const x, size_t lo, size_t hi, size_t (*pfunc)( long long * const, size_t, size_t ) )
 {
   for ( size_t i = lo + 1; i <= hi; i++ )
   {
-    int j = i;
+    size_t j = i;
     while ( j > lo && cmp( x[j-1], x[j] ) > 0 )
     {
       swap( &x[j], &x[j-1] );
@@ -93,11 +93,11 @@ void myins( int * const x, size_t lo, size_t hi, size_t (*pfunc)( int * const, s
 /**
  * Selection sort
  */
-void mysel( int * const x, size_t lo, size_t hi, size_t (*pfunc)( int * const, size_t, size_t ) )
+void mysel( long long * const x, size_t lo, size_t hi, size_t (*pfunc)( long long * const, size_t, size_t ) )
 {
   for ( size_t j = hi; j > lo; j-- )
   {
-    int max = x[j];
+    long long max = x[j];
     size_t idx = j;
 
     for ( size_t i = lo; i < j; i++ )
@@ -116,7 +116,7 @@ void mysel( int * const x, size_t lo, size_t hi, size_t (*pfunc)( int * const, s
 /**
  * Bubble sort
  */
-void mybub( int * const x, size_t lo, size_t hi, size_t (*pfunc)( int * const, size_t, size_t ) )
+void mybub( long long * const x, size_t lo, size_t hi, size_t (*pfunc)( long long * const, size_t, size_t ) )
 {
   for ( size_t i = lo; i <= hi - 1; i++ )
     for ( size_t j = i; j <= hi; j++ )
@@ -125,35 +125,12 @@ void mybub( int * const x, size_t lo, size_t hi, size_t (*pfunc)( int * const, s
 }
 
 /**
- * Custom partition function for quicksort that doesn't work
- */
-size_t bode( int * const x, size_t lo, size_t hi )
-{
-  size_t i = lo, j = hi;
-  while ( i <= j )
-  {
-    while ( i <= j && cmp( x[i], x[j] ) <= 0 )
-      i++;
- 
-    if ( i <= j )
-      swap( &x[i], &x[j] );
-
-    while ( j > i && cmp(x[j], x[i]) > 0 )
-      j--;
-
-    if ( i <= j )
-      swap( &x[i], &x[j] );
-  }
-  return i;
-}
-
-/**
  * Computes the median of three values - used
  * by quicksort partion function
  */
-int median( int a, int b, int c )
+int median( long long a, long long b, long long c )
 {
-  int result = b;
+  long long result = b;
 
   if ( a >= b && b >= c )
     result = b;
@@ -170,10 +147,10 @@ int median( int a, int b, int c )
 /**
  * Standard Hoare partitioning function for quicksort
  */
-size_t hoare( int * const x, size_t lo, size_t hi )
+size_t hoare( long long * const x, size_t lo, size_t hi )
 {
   long int i = lo - 1, j = hi + 1;
-  int pivot = x[lo]; // median( x[0], x[size/2], x[size-1] );
+  long long pivot = x[lo]; // median( x[0], x[size/2], x[size-1] );
 
   for( ;; )
   {
@@ -191,7 +168,7 @@ size_t hoare( int * const x, size_t lo, size_t hi )
 /**
  * Quicksort
  */
-void myqsort( int * const x, size_t lo, size_t hi, size_t (*pfunc)( int * const, size_t, size_t ) )
+void myqsort( long long * const x, size_t lo, size_t hi, size_t (*pfunc)( long long * const, size_t, size_t ) )
 {
   if ( ((hi - lo) + 1) < 2 )
     return;
@@ -213,7 +190,7 @@ void myqsort( int * const x, size_t lo, size_t hi, size_t (*pfunc)( int * const,
 /**
  * Write randomely ordered values to an array
  */
-void init( int * const x, size_t SIZE )
+void init( long long * const x, size_t SIZE )
 {
   for ( size_t i = 0; i < SIZE; i++ )
     x[i] = rand() % SIZE;
@@ -226,8 +203,8 @@ int main( int argc, char **argv )
 {
   unsigned long size = 100;
   size_t lo = 0, hi = size - 1;
-  void (*sort)( int * const, size_t, size_t, size_t (*)(int * const, size_t, size_t) ) = NULL;
-  size_t (*part)( int * const, size_t, size_t ) = NULL;
+  void (*sort)( long long * const, size_t, size_t, size_t (*)(long long * const, size_t, size_t) ) = NULL;
+  size_t (*part)( long long * const, size_t, size_t ) = NULL;
 
   int opt;
   int seed = 0; // do not use random seed;
@@ -278,10 +255,6 @@ int main( int argc, char **argv )
           case 'h':
             part = hoare;
             break;
-
-          case 'b':
-            part = bode;
-            break;
         }
         break;
     }
@@ -296,8 +269,8 @@ int main( int argc, char **argv )
   if ( seed )
     srand( time( NULL ));
 
-  int *source = malloc( sizeof *source * size );
-  int *work = malloc( sizeof *work * size );
+  long long *source = malloc( sizeof *source * size );
+  long long *work = malloc( sizeof *work * size );
   init( source, size );
 
   lo = 0;
