@@ -21,10 +21,10 @@ static size_t grecdepth = 0;
 /**
  * Check that the array is sorted
  */
-int validate( const long long * const x, size_t size )
+int validate( const double * const x, size_t size )
 {
   for ( size_t i = 0; i < size-1; i++ )
-    if ( x[i] > x[i+1] )
+    if ( isgreater(x[i], x[i+1]) )
       return 0;
   return 1;
 }
@@ -32,16 +32,13 @@ int validate( const long long * const x, size_t size )
 /**
  * Display the contents of the array, with nicely formatted output.
  */
-void display( const char * const prompt, long long * const x, size_t size )
+void display( const char * const prompt, double * const x, size_t size )
 {
   int tot = 0;
-  int dig = (int)(ceil(log10((double) size)));
-  char fmt[20];
-  sprintf( fmt, "%%%dllu ", dig );
   printf( "%s:\n", prompt );
   for ( size_t i = 0; i < size; i++ )
   {
-    tot += printf( fmt, x[i] );
+    tot += printf( "%15.2f ", x[i] );
     if ( tot >= 120 )
     {
       putchar( '\n' );
@@ -56,20 +53,20 @@ void display( const char * const prompt, long long * const x, size_t size )
  * Comparison function - counts the number of comparisons, can also
  * be overidden to change the sense of the test
  */
-static inline int cmp( long long x, long long y )
+static inline int cmp( double x, double y )
 {
   gcompare++;
-  return x - y;
+  return isgreater(x,y) ? 1 : (isless(x,y) ? -1 : 0);
 }
 
 /**
  * Swap function - counts the number of swaps
  */
-static inline void swap( long long * const restrict x, long long * const restrict y )
+static inline void swap( double * const restrict x, double * const restrict y )
 {
   gswap++;
 
-  long long t = *x;
+  double t = *x;
   *x = *y;
   *y = t;
 }
@@ -77,7 +74,7 @@ static inline void swap( long long * const restrict x, long long * const restric
 /**
  * Insertion sort.
  */
-void myins( long long * const x, size_t lo, size_t hi, size_t (*pfunc)( long long * const, size_t, size_t ) )
+void myins( double * const x, size_t lo, size_t hi, size_t (*pfunc)( double * const, size_t, size_t ) )
 {
   for ( size_t i = lo + 1; i <= hi; i++ )
   {
@@ -93,11 +90,11 @@ void myins( long long * const x, size_t lo, size_t hi, size_t (*pfunc)( long lon
 /**
  * Selection sort
  */
-void mysel( long long * const x, size_t lo, size_t hi, size_t (*pfunc)( long long * const, size_t, size_t ) )
+void mysel( double * const x, size_t lo, size_t hi, size_t (*pfunc)( double * const, size_t, size_t ) )
 {
   for ( size_t j = hi; j > lo; j-- )
   {
-    long long max = x[j];
+    double max = x[j];
     size_t idx = j;
 
     for ( size_t i = lo; i < j; i++ )
@@ -116,7 +113,7 @@ void mysel( long long * const x, size_t lo, size_t hi, size_t (*pfunc)( long lon
 /**
  * Bubble sort
  */
-void mybub( long long * const x, size_t lo, size_t hi, size_t (*pfunc)( long long * const, size_t, size_t ) )
+void mybub( double * const x, size_t lo, size_t hi, size_t (*pfunc)( double * const, size_t, size_t ) )
 {
   for ( size_t i = lo; i <= hi - 1; i++ )
     for ( size_t j = i; j <= hi; j++ )
@@ -128,9 +125,9 @@ void mybub( long long * const x, size_t lo, size_t hi, size_t (*pfunc)( long lon
  * Computes the median of three values - used
  * by quicksort partion function
  */
-int median( long long a, long long b, long long c )
+double median( double a, double b, double c )
 {
-  long long result = b;
+  double result = b;
 
   if ( a >= b && b >= c )
     result = b;
@@ -147,10 +144,10 @@ int median( long long a, long long b, long long c )
 /**
  * Standard Hoare partitioning function for quicksort
  */
-size_t hoare( long long * const x, size_t lo, size_t hi )
+size_t hoare( double * const x, size_t lo, size_t hi )
 {
   long int i = lo - 1, j = hi + 1;
-  long long pivot = x[lo]; // median( x[0], x[size/2], x[size-1] );
+  double pivot = x[lo]; // median( x[0], x[size/2], x[size-1] );
 
   for( ;; )
   {
@@ -168,7 +165,7 @@ size_t hoare( long long * const x, size_t lo, size_t hi )
 /**
  * Quicksort
  */
-void myqsort( long long * const x, size_t lo, size_t hi, size_t (*pfunc)( long long * const, size_t, size_t ) )
+void myqsort( double * const x, size_t lo, size_t hi, size_t (*pfunc)( double * const, size_t, size_t ) )
 {
   if ( ((hi - lo) + 1) < 2 )
     return;
@@ -188,12 +185,12 @@ void myqsort( long long * const x, size_t lo, size_t hi, size_t (*pfunc)( long l
 }
 
 /**
- * Write randomely ordered values to an array
+ * Write randomly ordered values to an array
  */
-void init( long long * const x, size_t SIZE )
+void init( double * const x, size_t size )
 {
-  for ( size_t i = 0; i < SIZE; i++ )
-    x[i] = rand() % SIZE;
+  for ( size_t i = 0; i < size; i++ )
+    x[i] = rand()/100.0;
 }
 
 /**
@@ -203,19 +200,24 @@ int main( int argc, char **argv )
 {
   unsigned long size = 100;
   size_t lo = 0, hi = size - 1;
-  void (*sort)( long long * const, size_t, size_t, size_t (*)(long long * const, size_t, size_t) ) = NULL;
-  size_t (*part)( long long * const, size_t, size_t ) = NULL;
+  void (*sort)( double * const, size_t, size_t, size_t (*)(double * const, size_t, size_t) ) = NULL;
+  size_t (*part)( double * const, size_t, size_t ) = NULL;
 
   int opt;
   int seed = 0; // do not use random seed;
+  unsigned int seedval = 0; // explicit seed value
   int resultsOnly = 0; // do not display array contents
   int sortPicked = 0;
 
-  while ( (opt = getopt( argc, argv, "n:srBSIQp:" ) ) != -1 )
+  while ( (opt = getopt( argc, argv, "n:s:rBSIQp:" ) ) != -1 )
   {
     switch( opt )
     {
       case 'n':
+        if ( !optarg )
+        {
+          fprintf( stderr, "n requires a value\n" );
+        }
         size = strtoul( optarg, NULL, 10 );
         break;
 
@@ -225,6 +227,10 @@ int main( int argc, char **argv )
 
       case 's':
         seed = 1;
+        if ( optarg )
+        {
+           seedval = (unsigned int) strtoul( optarg, NULL, 0 );
+        }
         break;
 
       case 'B':
@@ -257,20 +263,37 @@ int main( int argc, char **argv )
             break;
         }
         break;
+        
+      case ':':
+      case '?':
+        if ( optopt == 's' )
+        {
+          seed = 1;
+        }
+        else
+        {
+          fprintf( stderr, "Option %c requires an argument\n", optopt );
+          exit(0);
+        }
     }
   }
     
   if ( !sortPicked )
   {
-    fprintf( stderr, "USAGE: %s {-B|-S|-Q [-p b|h] |-I} [-n size] [-s] [-r]\n", argv[0] );
+    fprintf( stderr, "USAGE: %s {-B|-S|-Q [-p b|h] |-I} [-n size] [-s [sval]] [-r]\n", argv[0] );
     exit( EXIT_FAILURE );
   }
 
   if ( seed )
-    srand( time( NULL ));
-
-  long long *source = malloc( sizeof *source * size );
-  long long *work = malloc( sizeof *work * size );
+  {
+    if ( seedval == 0 )
+      srand( time( NULL ) );
+    else
+      srand( seedval );
+  }
+  
+  double *source = malloc( sizeof *source * size );
+  double *work = malloc( sizeof *work * size );
   init( source, size );
 
   lo = 0;
