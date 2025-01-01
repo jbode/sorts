@@ -13,10 +13,10 @@
  * gsortlevel - current recursion level
  * grecdepth  - maximum recursion level
  */
-static size_t gcompare=0;
-static size_t gswap=0;
-static size_t gsortlevel = 0;
-static size_t grecdepth = 0;
+static size_t gcompare    = 0;
+static size_t gswap       = 0;
+static size_t gsortlevel  = 0;
+static size_t grecdepth   = 0;
 
 /**
  * Check that the array is sorted
@@ -32,13 +32,13 @@ int validate( const double * const x, size_t size )
 /**
  * Display the contents of the array, with nicely formatted output.
  */
-void display( const char * const prompt, double * const x, size_t size )
+void display( const char * const prompt, double * const x, size_t size, int width, int prec )
 {
   int tot = 0;
   printf( "%s:\n", prompt );
   for ( size_t i = 0; i < size; i++ )
   {
-    tot += printf( "%15.2f ", x[i] );
+    tot += printf( "%*.*f ", width, prec, x[i] );
     if ( tot >= 120 )
     {
       putchar( '\n' );
@@ -208,8 +208,10 @@ int main( int argc, char **argv )
   unsigned int seedval = 0; // explicit seed value
   int resultsOnly = 0; // do not display array contents
   int sortPicked = 0;
+  int displayWidth = 15;
+  int displayPrec = 2;
 
-  while ( (opt = getopt( argc, argv, "n:s:rBSIQp:" ) ) != -1 )
+  while ( (opt = getopt( argc, argv, "n:s:rBSIQp:W:P:" ) ) != -1 )
   {
     switch( opt )
     {
@@ -217,6 +219,7 @@ int main( int argc, char **argv )
         if ( !optarg )
         {
           fprintf( stderr, "n requires a value\n" );
+          exit( 0 );
         }
         size = strtoul( optarg, NULL, 10 );
         break;
@@ -264,6 +267,24 @@ int main( int argc, char **argv )
         }
         break;
         
+      case 'W':
+        if ( !optarg )
+        {
+          fprintf( stderr, "W requires a value\n" );
+          exit( 0 );
+        }
+        displayWidth = strtol( optarg, NULL, 10 );
+        break;
+
+      case 'P':
+        if ( !optarg )
+        {
+          fprintf( stderr, "O requires a value\n" );
+          exit( 0 );
+        }
+        displayPrec = strtol( optarg, NULL, 10 );
+        break;
+
       case ':':
       case '?':
         if ( optopt == 's' )
@@ -302,14 +323,14 @@ int main( int argc, char **argv )
   gcompare = gswap = 0;
   memcpy( work, source, size * sizeof *work );
   if ( !resultsOnly )
-    display( "before sort", work, size );
+    display( "before sort", work, size, displayWidth, displayPrec );
 
   clock_t clockStart = clock();
   sort( work, lo, hi, part );
   clock_t clockEnd = clock();
 
   if ( !resultsOnly )
-    display( "after sort", work, size );
+    display( "after sort", work, size, displayWidth, displayPrec );
   if ( validate( work, size ) )
     printf( "elements: %lu\tcomparisons: %zu\tswaps: %zu\truntime: %lu clocks (%f secs)\tmax recur: %zu\n\n", size, gcompare, gswap,
       (unsigned long) (clockEnd - clockStart), (double)(clockEnd - clockStart)/CLOCKS_PER_SEC, grecdepth  );
